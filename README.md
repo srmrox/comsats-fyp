@@ -1,2 +1,1 @@
-# comsats-fyp
-COMSATS BSCS FYP onn Blockchain
+# Blockchain in Daily Life
