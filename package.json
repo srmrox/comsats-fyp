@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/srmrox/comsats-fyp#readme",
   "dependencies": {
+    "http": "0.0.0",
     "sha256": "^0.2.0"
   }
 }

@@ -55,3 +55,26 @@ addBlock("<img src='https://trello-avatars.s3.amazonaws.com/ea9df751f3e6f6b79e3e
 // Display our blockchain
 // TODO: make results pretty
 console.log(blockchain);
+
+////////////////////////////////////////////
+// Code to output results as an HTML file //
+////////////////////////////////////////////
+
+// This requires the HTTP module for NodeJS
+var http = require('http');
+
+// This creates an HTTP server
+http.createServer(function(req, res) {
+    // sends out a 200 response (200 being ok (similar to the 404, with means page not found))
+    res.writeHead(200, {'Content-Type': 'text/html'});  // only the browser gets to see this
+    // writes out the main HTML file to serve
+    res.write('<!doctype html>\n<html lang="en">\n<meta charset="utf-8">' + 
+        '\n<title>Simple Blockchain</title>\n' + 
+        '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n' + 
+        '\n\n<h1>Blockchain data:</h1>\n' + 
+        '<div id="content"><p>' + blockchain +'</p></div>' + 
+        '\n\n');
+    // ends the response
+    res.end();
+}).listen(8888, '127.0.0.1');   // starts listening on port 8888 on localhost
+console.log('Server running at http://127.0.0.1:8888');
