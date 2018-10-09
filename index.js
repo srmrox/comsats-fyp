@@ -62,21 +62,18 @@ console.log("|| ---------- BLOCKCHAIN DATA ENDED ---------- ||");
 // Code to output results as an HTML file //
 ////////////////////////////////////////////
 
-// This requires the HTTP module for NodeJS
-var http = require('http');
-
-// This creates an HTTP server
-console.log("|| ---------- CREATING SERVER ---------- ||");
-
-// Generate response text
+// make the response text
 var resText =   '<!doctype html>\n' +
-                    '<html lang="en">\n<head>\n' +
-                        '<meta charset="utf-8">\n' + 
-                        '<title>Simple Blockchain</title>\n' +
-                        '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n</head>\n' +
+                    '<html lang="en">\n'+
+                        '<head>\n' +
+                            '<meta charset="utf-8">\n' + 
+                            '<title>Simple Blockchain</title>\n' +
+                            '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n'+
+                        '</head>\n' +
                         '<body><h1>Blockchain data:</h1>\n' +
                         '<div id="content">';
 
+// loop through the blockchain and print every block
 for (var i = 0; i < blockchain.length; i++){
     resText += '<p><b>Index:</b> ' + blockchain[i].index + '<br>';
     resText += '<b>Timestamp:</b> ' + blockchain[i].timestamp + '<br>';
@@ -86,11 +83,15 @@ for (var i = 0; i < blockchain.length; i++){
 }
 resText += '</div></body></html>';
 
-http.createServer(function(req, res) {
-    // sends out a 200 response (200 being ok (similar to the 404, with means page not found))
-    res.writeHead(200, {'Content-Type': 'text/html'});  // only the browser gets to see this
-    // writes out the response text and ends the response
-    res.end(resText);
-}).listen(8081);   // starts listening on port 8081 on localhost
-console.log("|| ---------- ENDED SERVER ---------- ||");
-console.log('Server running at http://127.0.0.1:8081');
+// standard code to make server via Express
+var express = require('express');
+var app = express();
+var port = process.env.PORT || 8081;
+
+app.get("/",function(req, res) {
+    res.send(resText);   // and send a response text
+});
+
+app.listen(port);
+
+console.log('|| ---------- Server running at http://127.0.0.1:' + port + ' ---------- ||');
