@@ -54,7 +54,9 @@ addBlock("<img src='https://trello-avatars.s3.amazonaws.com/ea9df751f3e6f6b79e3e
 
 // Display our blockchain
 // TODO: make results pretty
+console.log("|| ---------- STARTING BLOCKCHAIN DATA ---------- ||");
 console.log(blockchain);
+console.log("|| ---------- BLOCKCHAIN DATA ENDED ---------- ||");
 
 ////////////////////////////////////////////
 // Code to output results as an HTML file //
@@ -64,6 +66,7 @@ console.log(blockchain);
 var http = require('http');
 
 // This creates an HTTP server
+console.log("|| ---------- CREATING SERVER ---------- ||");
 http.createServer(function(req, res) {
     // sends out a 200 response (200 being ok (similar to the 404, with means page not found))
     res.writeHead(200, {'Content-Type': 'text/html'});  // only the browser gets to see this
@@ -72,9 +75,10 @@ http.createServer(function(req, res) {
         '\n<title>Simple Blockchain</title>\n' + 
         '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n' + 
         '\n\n<h1>Blockchain data:</h1>\n' + 
-        '<div id="content"><p>' + blockchain +'</p></div>' + 
+        '<div id="content"><p>' + blockchain.toString() +'</p></div>' + 
         '\n\n');
     // ends the response
-    res.end();
-}).listen(8888, '127.0.0.1');   // starts listening on port 8888 on localhost
-console.log('Server running at http://127.0.0.1:8888');
+    res.end('Done');
+}).listen(8081);   // starts listening on port 8888 on localhost
+console.log("|| ---------- ENDED SERVER ---------- ||");
+console.log('Server running at http://127.0.0.1:8081');
