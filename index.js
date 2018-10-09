@@ -39,8 +39,8 @@ var lastBlock = blockchain[0];
 // This functions creates a new block and adds it to the blockchain
 // It also updates the lastBlock variable
 function addBlock(data){
-    const newBlock = nextBlock(previousBlock, data);    // create new block
-    blockchain.push(newBlock);                          // add it to the blockchain
+    const newBlock = nextBlock(lastBlock, data);    // create new block
+    blockchain.push(newBlock);                      // add it to the blockchain
     lastBlock = newBlock;                           // update last block with new block
 }
 
