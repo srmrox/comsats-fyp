@@ -67,18 +67,30 @@ var http = require('http');
 
 // This creates an HTTP server
 console.log("|| ---------- CREATING SERVER ---------- ||");
+
+// Generate response text
+var resText =   '<!doctype html>\n' +
+                    '<html lang="en">\n<head>\n' +
+                        '<meta charset="utf-8">\n' + 
+                        '<title>Simple Blockchain</title>\n' +
+                        '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n</head>\n' +
+                        '<body><h1>Blockchain data:</h1>\n' +
+                        '<div id="content">';
+
+for (var i = 0; i < blockchain.length; i++){
+    resText += '<p><b>Index:</b> ' + blockchain[i].index + '<br>';
+    resText += '<b>Timestamp:</b> ' + blockchain[i].timestamp + '<br>';
+    resText += '<b>Hash:</b> ' + blockchain[i].thisHash + '<br>';
+    resText += '<b>Previous Hash:</b> ' + blockchain[i].prevHash + '<br>';
+    resText += '<b>Data:</b> ' + blockchain[i].data + '</p>';
+}
+resText += '</div></body></html>';
+
 http.createServer(function(req, res) {
     // sends out a 200 response (200 being ok (similar to the 404, with means page not found))
     res.writeHead(200, {'Content-Type': 'text/html'});  // only the browser gets to see this
-    // writes out the main HTML file to serve
-    res.write('<!doctype html>\n<html lang="en">\n<meta charset="utf-8">' + 
-        '\n<title>Simple Blockchain</title>\n' + 
-        '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n' + 
-        '\n\n<h1>Blockchain data:</h1>\n' + 
-        '<div id="content"><p>' + blockchain.toString() +'</p></div>' + 
-        '\n\n');
-    // ends the response
-    res.end('Done');
-}).listen(8081);   // starts listening on port 8888 on localhost
+    // writes out the response text and ends the response
+    res.end(resText);
+}).listen(8081);   // starts listening on port 8081 on localhost
 console.log("|| ---------- ENDED SERVER ---------- ||");
 console.log('Server running at http://127.0.0.1:8081');
