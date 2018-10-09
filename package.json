@@ -1,9 +1,10 @@
 {
   "name": "comsats-fyp",
   "version": "1.0.0",
-  "description": "",
+  "description": "simple blockchain in nodejs",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -11,7 +12,7 @@
     "url": "git+https://github.com/srmrox/comsats-fyp.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Shahrukh Malik",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/srmrox/comsats-fyp/issues"
