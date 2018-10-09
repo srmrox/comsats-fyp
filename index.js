@@ -54,4 +54,4 @@ addBlock("<img src='https://trello-avatars.s3.amazonaws.com/ea9df751f3e6f6b79e3e
 
 // Display our blockchain
 // TODO: make results pretty
-document.write(blockchain);
+console.log(blockchain);
