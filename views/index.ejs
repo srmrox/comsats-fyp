@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Simple Blockchain</title>
+        <style type="text/css">* {font-family:arial, sans-serif;}</style>
+    </head>
+    <body>
+        <h1>Blockchain data:</h1>
+        <div id="input">
+            <form action="/" method="post">
+                <input name="data" type="text" class="input" placeholder="Enter block data" required>
+                <input type="submit" class="button" value="Add">
+            </form>
+        </div>
+        <div id="content">
+            <% if(chain!==null) { %>
+                <ul>
+                <% for (var i = chain.length-1; i >= 0; i--) { %>
+                    <li>
+                        <b>Index:</b> <%- chain[i].index %><br>
+                        <b>Timestamp:</b> <%- chain[i].timestamp %><br>
+                        <b>Hash:</b> <%- chain[i].thisHash %><br>
+                        <b>Previous Hash:</b> <%- chain[i].prevHash %><br>
+                        <b>Data:</b> <%- chain[i].data %></p>
+                    </li>
+                <% } %>
+                </ul>
+            <% } %>
+        </div>
+    </body>
+</html>
