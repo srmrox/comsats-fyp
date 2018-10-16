@@ -1,50 +1,51 @@
 // COMSATS FYP
 // Blockchain in daily life
-// Simple blockchain with NodeJS, deployed on Heroku
+// Simple blockchain deployed on Heroku
+// Server: NodeJS
+// Server engine: Express
+// Template engine: Embedded JavaScript (EJS)
 
-// This application uses NodeJS to serve the JavaScript code
-// Since we will be hashing stuff, we need to install a hashing package (sha256 in this case)
-// We must make sure it exists in the installation, so that our code works once deployed
-const sha256 = require('sha256');
+const sha256 = require('sha256');           // for hashing
+const express = require('express');         // for serving responses
+const bodyParser = require('body-parser');  // for parsing ejs template body during input POST requests
 
-// The class definition of our block; since we don't have consensus mechanism yet, nonce is not included
+// the block class; since we don't have consensus mechanism yet, nonce is not included
 class Block {
 
-    // The constructor function is run wheneve a new object of this class in instantiated (created)
+    // this gets called every time a new block is made (that's what a constructor function is)
     constructor(index, timestamp, data, prevHash) {
-                                        // Represents:
-        this.index = index;             //   the serial number of the block
-        this.timestamp = timestamp;     //   when the block was created
-        this.data = data;               //   the data stored in the block
+        this.index = index;             //   the serial number of the block; TODO this should be a hash too
+        this.timestamp = timestamp;     //   time at which the block was created
+        this.data = data;               //   the data stored in the block; TODO possibility to have more than one data?
         this.prevHash = prevHash;       //   previous hash, needed to keep the blockchain going
-        this.thisHash = sha256(         //   hash for this block, need for previous hash in next block
-            this.index + this.timestamp + this.data + this.prevHash);    
+        this.thisHash = sha256(         //   hash for this block
+            this.index + this.timestamp + this.data + this.prevHash);
   }
 }
 
-// The function to create the first block in the blockchain, the Genesis Block
-// It has the serial number and previous hash of 0; this is passed to it manually through this function
+// create the genesis block, with index 0, data 'Genesis Block' and hash '0'
 const createGenesisBlock = () => new Block(0, Date.now(), 'Genesis Block', '0');
-
-// This function is used to create a new block in the blockchain
-const nextBlock = (prevBlock, data) => new Block(prevBlock.index + 1, Date.now(), data, prevBlock.thisHash);
-
-// This creates the blockchain and the Genesis Block and assigns the blockchain
-// we created to the constant 'blockchain' (we can name this anything)
+// ...and store it in an array, i.e. our blockchain
 const blockchain = [createGenesisBlock()];
-
-// This defines the previousBlock variable and gives it the block we just created
+// set genesis block as the last block in the chain
 var lastBlock = blockchain[0];
 
-// This functions creates a new block and adds it to the blockchain
-// It also updates the lastBlock variable
+// function to create new block
+const nextBlock = (prevBlock, data) => new Block(prevBlock.index + 1, Date.now(), data, prevBlock.thisHash);
+
+// function to add new block to the blockchain
 function addBlock(data){
     const newBlock = nextBlock(lastBlock, data);    // create new block
-    blockchain.push(newBlock);                      // add it to the blockchain
+    blockchain.push(newBlock);                      // add it to the blockchain         --- ref A
     lastBlock = newBlock;                           // update last block with new block
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Note: we can't have the new block code inside the push in ref A because then we don't have it stored anywhere //
+    //       to assign to lastBlock in the line next to ref A; TODO find a possibility to do the same in one line    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
-// Since we have a functional blockchain now, we add random data elements to see how it works
+// random initial blocks
 addBlock("Block # 1");
 addBlock("Is this working?");
 addBlock("If you can see this, then it must be");
@@ -52,46 +53,23 @@ addBlock("This is a very large string made of the popular Lorem ipsum dolor sit 
 addBlock("<a href='http://google.com'>Google</a>");
 addBlock("<img src='https://trello-avatars.s3.amazonaws.com/ea9df751f3e6f6b79e3e895ab65d589c/50.png' />");
 
-// Display our blockchain
-// TODO: make results pretty
-console.log("|| ---------- STARTING BLOCKCHAIN DATA ---------- ||");
-console.log(blockchain);
-console.log("|| ---------- BLOCKCHAIN DATA ENDED ---------- ||");
-
-////////////////////////////////////////////
-// Code to output results as an HTML file //
-////////////////////////////////////////////
-
-// make the response text
-var resText =   '<!doctype html>\n' +
-                    '<html lang="en">\n'+
-                        '<head>\n' +
-                            '<meta charset="utf-8">\n' + 
-                            '<title>Simple Blockchain</title>\n' +
-                            '<style type="text/css">* {font-family:arial, sans-serif;}</style>\n'+
-                        '</head>\n' +
-                        '<body><h1>Blockchain data:</h1>\n' +
-                        '<div id="content">';
-
-// loop through the blockchain and print every block
-for (var i = 0; i < blockchain.length; i++){
-    resText += '<p><b>Index:</b> ' + blockchain[i].index + '<br>';
-    resText += '<b>Timestamp:</b> ' + blockchain[i].timestamp + '<br>';
-    resText += '<b>Hash:</b> ' + blockchain[i].thisHash + '<br>';
-    resText += '<b>Previous Hash:</b> ' + blockchain[i].prevHash + '<br>';
-    resText += '<b>Data:</b> ' + blockchain[i].data + '</p>';
-}
-resText += '</div></body></html>';
-
-// standard code to make server via Express
-var express = require('express');
-var app = express();
+const app = express();
 var port = process.env.PORT || 8081;
 
-app.get("/",function(req, res) {
-    res.send(resText);   // and send a response text
+app.set('view engine', 'ejs');      // use ejs template engine to render HTML
+app.use(express.static('public'));  // expose the public folder to enable CSS files to be accessed by visitors
+app.use(bodyParser.urlencoded({ extended: true })); // setup bodyparser
+
+app.get("/",function(req, res) {    // the initial get route
+    res.render('index', {chain: blockchain});
 });
+
+app.post('/', function (req, res) { // the post route from request to add a block
+    let newData = req.body.data;
+    addBlock(newData);
+    res.render('index', {chain: blockchain});
+  })
 
 app.listen(port);
 
-console.log('|| ---------- Server running at http://127.0.0.1:' + port + ' ---------- ||');
+console.log('Server running at http://127.0.0.1:' + port);
