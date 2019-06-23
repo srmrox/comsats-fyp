@@ -1,75 +1,118 @@
 // COMSATS FYP
 // Blockchain in daily life
-// Simple blockchain deployed on Heroku
-// Server: NodeJS
-// Server engine: Express
-// Template engine: Embedded JavaScript (EJS)
 
-const sha256 = require('sha256');           // for hashing
-const express = require('express');         // for serving responses
-const bodyParser = require('body-parser');  // for parsing ejs template body during input POST requests
+// includes
+const express = require('express');
+const request = require('request');
+const bodyParser = require('body-parser');
+const path = require('path');
+const Blockchain = require('./blockchain');
+const PubSub = require('./blockchain/pubsub');
+const TransactionPool = require('./blockchain/pool');
+const Entity = require('./blockchain/entity');
+const TransactionMiner = require('./blockchain/miner');
 
-// the block class; since we don't have consensus mechanism yet, nonce is not included
-class Block {
+// global constants
+const isDevelopment = process.env.ENV === 'development';
+const REDIS_URL = isDevelopment ?
+    'redis://127.0.0.1:6379' :
+    'redis://h:pb4fe08fe2a49416dcdbae70becb94889fde7926b623129c30f824345a56b7a46@ec2-100-24-147-74.compute-1.amazonaws.com:17839';
+const DEFAULT_PORT = 3000;
+const ROOT_NODE_ADDRESS = isDevelopment ?
+`http://localhost:${DEFAULT_PORT}` :
+'https://comsats-fyp.herokuapp.com';
 
-    // this gets called every time a new block is made (that's what a constructor function is)
-    constructor(index, timestamp, data, prevHash) {
-        this.index = index;             //   the serial number of the block; TODO this should be a hash too
-        this.timestamp = timestamp;     //   time at which the block was created
-        this.data = data;               //   the data stored in the block; TODO possibility to have more than one data?
-        this.prevHash = prevHash;       //   previous hash, needed to keep the blockchain going
-        this.thisHash = sha256(         //   hash for this block
-            this.index + this.timestamp + this.data + this.prevHash);
-  }
-}
-
-// create the genesis block, with index 0, data 'Genesis Block' and hash '0'
-const createGenesisBlock = () => new Block(0, Date.now(), 'Genesis Block', '0');
-// ...and store it in an array, i.e. our blockchain
-const blockchain = [createGenesisBlock()];
-// set genesis block as the last block in the chain
-var lastBlock = blockchain[0];
-
-// function to create new block
-const nextBlock = (prevBlock, data) => new Block(prevBlock.index + 1, Date.now(), data, prevBlock.thisHash);
-
-// function to add new block to the blockchain
-function addBlock(data){
-    const newBlock = nextBlock(lastBlock, data);    // create new block
-    blockchain.push(newBlock);                      // add it to the blockchain         --- ref A
-    lastBlock = newBlock;                           // update last block with new block
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Note: we can't have the new block code inside the push in ref A because then we don't have it stored anywhere //
-    //       to assign to lastBlock in the line next to ref A; TODO find a possibility to do the same in one line    //
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-}
-
-// random initial blocks
-addBlock("Block # 1");
-addBlock("Is this working?");
-addBlock("If you can see this, then it must be");
-addBlock("This is a very large string made of the popular Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor odio id risus porttitor auctor. Ut vehicula dolor interdum libero imperdiet, nec sodales mauris fringilla. Donec nisl metus, tincidunt vitae pharetra eget, interdum ac massa. Maecenas quam lectus, ultrices eu porta quis, elementum at augue. Phasellus consectetur lacinia augue non.");
-addBlock("<a href='http://google.com'>Google</a>");
-addBlock("<img src='https://trello-avatars.s3.amazonaws.com/ea9df751f3e6f6b79e3e895ab65d589c/50.png' />");
-
+// initializations
 const app = express();
-var port = process.env.PORT || 8081;
+const blockchain = new Blockchain();
+const transactionPool = new TransactionPool();
+const seller = new Entity();
+const pubsub = new PubSub({ blockchain, transactionPool, redisUrl: REDIS_URL });
+const transactionMiner = new TransactionMiner({ blockchain, transactionPool, seller, pubsub });
 
-app.set('view engine', 'ejs');      // use ejs template engine to render HTML
-app.use(express.static('public'));  // expose the public folder to enable CSS files to be accessed by visitors
-app.use(bodyParser.urlencoded({ extended: true })); // setup bodyparser
+// initialize express:
+app.use(bodyParser.json());                                     // to use body parser
+app.use(express.static(path.join(__dirname, 'client/dist')));   // to expose current directory/client/dist as front-end
 
-app.get("/",function(req, res) {    // the initial get route
-    res.render('index', {chain: blockchain});
+// end points
+app.get('/api/blocks', (req, res) => {
+    res.json(blockchain.chain);
 });
 
-app.post('/', function (req, res) { // the post route from request to add a block
-    let newData = req.body.data;
-    addBlock(newData);
-    res.render('index', {chain: blockchain});
-  })
+app.post('/api/mine', (req, res) => {
+    const { data } = req.body;
+    blockchain.addBlock({ data });
+    pubsub.broadcastChain();
+    res.redirect('/api/blocks');
+});
 
-app.listen(port);
+app.post('/api/transact', (req, res) => {
+    const { buyer, property } = req.body;
 
-console.log('Server running at http://127.0.0.1:' + port);
+    let transaction = transactionPool.existingTransaction({ property });
+
+    try {
+        if(transaction) {
+            transaction.update({ seller, buyer, property, blockchain });
+        } else {
+            transaction = seller.createTransaction({buyer, property, blockchain});
+        }
+    } catch(error) {
+        return res.status(400).json({ type: 'error', message: error.message });
+    }
+    
+    transactionPool.setTransaction(transaction);
+    pubsub.broadcastTransaction(transaction);
+    res.json({ type: 'success', transaction });
+});
+
+app.get('/api/transaction-pool-map', (req, res) => {
+    res.json(transactionPool.transactionMap);
+});
+
+app.get('/api/mine-transactions', (req, res) => {
+    transactionMiner.mineTransactions(blockchain);
+    res.redirect('/api/blocks');
+});
+
+app.get('/api/property-info', (req, res) => {
+    const { property } = req.body;
+    res.json({ owner: blockchain.locateOwner(property).data[0].outputMap[property] });
+});
+
+// ---- NO END POINT BEYOND THIS LINE ---- //
+//app.get('*', (req, res) => {    // * = any end point not defined yet
+//    res.sendFile(path.join(__dirname, 'client/dist/index.html',));
+//});
+
+const syncWithRootState = () => {
+    request({ url: `${ROOT_NODE_ADDRESS}/api/blocks` }, (error, response, body) => {
+        if(!error && response.statusCode === 200) {
+            const rootChain = JSON.parse(body);
+            console.log('Replacing chain on a sync with ', rootChain);
+            blockchain.replaceChain(rootChain);
+        }
+    });
+
+    request({ url: `${ROOT_NODE_ADDRESS}/api/transaction-pool-map` }, (error, response, body) => {
+        if(!error && response.statusCode === 200) {
+            const rootTransactionPoolMap = JSON.parse(body);
+            console.log('Replacing transaction pool map on a sync with', rootTransactionPoolMap);
+            transactionPool.setMap(rootTransactionPoolMap);
+        }
+    });
+}
+
+let PEER_PORT;
+
+if (process.env.GENERATE_PEER_PORT === 'true') {
+    PEER_PORT = DEFAULT_PORT + Math.ceil(Math.random() * 1000);
+}
+const PORT = process.env.PORT || PEER_PORT || DEFAULT_PORT;
+
+app.listen(PORT, () => {
+    console.log(`Application listening at localhost:${PORT}`);
+    if(PORT !== DEFAULT_PORT) {
+        syncWithRootState();
+    }
+});
