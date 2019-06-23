@@ -16,7 +16,7 @@ class TransactionPool {
 
     existingTransaction({ property }) {
         const transactions = Object.values(this.transactionMap);
-        return transactions.find(transaction => transaction.outputMap[property]);   // return all transactions where property exists in output map
+        return transactions.find(transaction => Object.keys(transaction.outputMap)[0] == property);   // return all transactions where property exists in output map
     }
 
     validTransactions(blockchain){

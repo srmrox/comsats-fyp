@@ -44,8 +44,15 @@ class Transaction {
         //}
 
         // if there is no record of seller as being the buyer, he is not the owner
-        if(proofBlock !== undefined && proofBlock !== null) {
-            if (proofBlock.outputMap[property] !== seller.publicKey){
+        if(proofBlock) {
+            let ownerFlag = false;
+            for (let transaction of proofBlock.data) {
+                if(transaction.outputMap[property] === seller) {
+                    ownerFlag = true;
+                }
+            }
+
+            if (ownerFlag == false){
                 console.error('Seller is not owner of selected property');
                 return false;
             }
@@ -57,16 +64,23 @@ class Transaction {
     update({ seller, buyer, property, blockchain }){
         const proofBlock = blockchain.locateOwner(property);
         
-        //if (proofBlock){
-            if(proofBlock.outputMap[property] === seller.publicKey) {
-                this.outputMap[property] = buyer;
-                this.input = this.createInput({ seller, proof: proofBlock.hash, outputMap: this.outputMap });
-            } else {
+        if (proofBlock){
+            let ownerFlag = false;
+            for (let transaction of proofBlock.data) {
+                if(transaction.outputMap[property] === this.publicKey) {
+                    ownerFlag = true;
+                }
+            }
+
+            if(ownerFlag == false) {
                 throw new Error('Seller is not owner of selected property');
             }
-        //} else {
-        //      throw new Error('Owner of property could not be located');
-        //}
+        }
+
+        // either proofBlock does not exist, i.e. there is no record of ownership of property
+        // or proofBlock exists and ownerFlag was true
+        this.outputMap[property] = buyer;
+        this.input = this.createInput({ seller, proof: !proofBlock ? undefined : proofBlock.hash, outputMap: this.outputMap });
     }
 }
 

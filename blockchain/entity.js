@@ -15,7 +15,14 @@ class Entity {
         const proofBlock = blockchain.locateOwner(property);
         
         if (proofBlock){
-            if(proofBlock.outputMap[property] === seller.publicKey) {
+            let ownerFlag = false;
+            for (let transaction of proofBlock.data) {
+                if(transaction.outputMap[property] === this.publicKey) {
+                    ownerFlag = true;
+                }
+            }
+
+            if(ownerFlag == true) {
                 return new Transaction({ seller: this, buyer, property });
             } else {
                 throw new Error('Seller is not owner of selected property');

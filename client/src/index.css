@@ -16,3 +16,21 @@ body {
 .UserInfo {
     width: 500px;
 }
+
+.Block {
+    border: 1px solid #333;
+    padding: 5%;
+    margin: 2%;
+}
+
+.Transaction {
+    padding: 5%;
+}
+
+.ConductTransaction, .TransactionPool {
+    margin: 10%;
+}
+
+a, a:hover {
+    text-decoration: underline;
+}

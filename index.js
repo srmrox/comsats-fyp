@@ -50,7 +50,7 @@ app.post('/api/transact', (req, res) => {
     const { buyer, property } = req.body;
 
     let transaction = transactionPool.existingTransaction({ property });
-
+    
     try {
         if(transaction) {
             transaction.update({ seller, buyer, property, blockchain });
