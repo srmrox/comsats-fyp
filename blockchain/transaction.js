@@ -46,7 +46,7 @@ class Transaction {
         //}
 
         // if there is no record of seller as being the buyer, he is not the owner
-        if(proofBlock) {
+        if(proofBlock !== undefined && proofBlock !== null) {
             if (proofBlock.outputMap[property] !== seller.publicKey){
                 console.error('Seller is not owner of selected property');
                 return false;

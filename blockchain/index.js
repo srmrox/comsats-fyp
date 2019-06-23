@@ -32,12 +32,13 @@ class Blockchain {
 
     listProperties(entity) {
         let properties = [];
-
+        
         for (let i = this.chain.length - 1; i > 0; i--) {
             const block = this.chain[i];
             for (let transaction of block.data) {
-                if (transaction.outputMap[0] === entity.publicKey) {
-                    properties.push(Object.keys(transaction.outputMap)[0]);
+                const property = Object.keys(transaction.outputMap)[0]
+                if (transaction.outputMap[property] == entity) {
+                    properties.push(property);
                 }
             }
         }
