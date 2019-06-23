@@ -30,6 +30,21 @@ class Blockchain {
         return null;
     }
 
+    listProperties(entity) {
+        let properties = [];
+
+        for (let i = this.chain.length - 1; i > 0; i--) {
+            const block = this.chain[i];
+            for (let transaction of block.data) {
+                if (transaction.outputMap[0] === entity.publicKey) {
+                    properties.push(Object.keys(transaction.outputMap)[0]);
+                }
+            }
+        }
+
+        return properties;
+    }
+
     static isValidChain(chain) {
 
         // CHECK FOR GENESIS BLOCK

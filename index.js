@@ -77,13 +77,27 @@ app.get('/api/mine-transactions', (req, res) => {
 
 app.get('/api/property-info', (req, res) => {
     const { property } = req.body;
-    res.json({ owner: blockchain.locateOwner(property).data[0].outputMap[property] });
+    const ownerBlock = blockchain.locateOwner(property);
+    if(ownerBlock) {
+        res.json({ owner: ownerBlock.data[0].outputMap[property] });
+    } else {
+        res.json({ owner: ""})
+    }
+});
+
+app.get('/api/user-info', (req, res) => {
+    const address = seller.publicKey;
+
+    res.json({
+        address,
+        properties: blockchain.listProperties(address)
+    });
 });
 
 // ---- NO END POINT BEYOND THIS LINE ---- //
-//app.get('*', (req, res) => {    // * = any end point not defined yet
-//    res.sendFile(path.join(__dirname, 'client/dist/index.html',));
-//});
+app.get('*', (req, res) => {    // * = any end point not defined yet
+    res.sendFile(path.join(__dirname, 'client/dist/index.html',));
+});
 
 const syncWithRootState = () => {
     request({ url: `${ROOT_NODE_ADDRESS}/api/blocks` }, (error, response, body) => {
