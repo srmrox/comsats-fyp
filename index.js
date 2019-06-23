@@ -86,11 +86,9 @@ app.get('/api/property-info', (req, res) => {
 });
 
 app.get('/api/user-info', (req, res) => {
-    const address = seller.publicKey;
-
     res.json({
-        address,
-        properties: blockchain.listProperties(address)
+        address: seller.publicKey,
+        properties: blockchain.listProperties(seller)
     });
 });
 

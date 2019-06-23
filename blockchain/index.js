@@ -36,8 +36,23 @@ class Blockchain {
             const block = this.chain[i];
             for (let transaction of block.data) {
                 const property = Object.keys(transaction.outputMap)[0]
-                if (transaction.outputMap[property] == entity) {
-                    properties.push(property);
+                if (transaction.outputMap[property] == entity.publicKey) {
+                    // at this stage, we've found that this property was owned by the entity at some point
+                    // now we have to see if the property is owned by the entity now by reading the latest block with ownership data
+                    const proofBlock = this.locateOwner(property);
+        
+                    if (proofBlock){
+                        let ownerFlag = false;
+                        for (let transaction of proofBlock.data) {
+                            if(transaction.outputMap[property] === entity.publicKey) {
+                                ownerFlag = true;
+                            }
+                        }
+
+                        if(ownerFlag == true) {
+                            properties.push(property);
+                        }
+                    }
                 }
             }
         }
