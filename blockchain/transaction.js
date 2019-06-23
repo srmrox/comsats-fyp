@@ -1,7 +1,5 @@
 const uuid = require('uuid/v1');
 const { verifySignature } = require('../util');
-const Blockchain = require('./index');
-const Block = require('./block');
 
 class Transaction {
     constructor({ seller, buyer, property, outputMap, input }) {
@@ -28,7 +26,7 @@ class Transaction {
     }
 
     static validTransaction(transaction, blockchain) {                          // we're getting a transaction objects directly as a parameter
-        const {input: {seller, proof, signature}, outputMap} = transaction;     // so it gets to be destructured into input/output and input gets further destructured
+        const {input: {seller, signature}, outputMap} = transaction;     // so it gets to be destructured into input/output and input gets further destructured
         const property = Object.keys(outputMap)[0];
 
         // check that signature are valid

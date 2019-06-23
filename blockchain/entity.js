@@ -27,6 +27,6 @@ class Entity {
             return new Transaction({ seller: this, buyer, property });
         }
     }
-};
+}
 
 module.exports = Entity;

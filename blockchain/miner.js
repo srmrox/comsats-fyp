@@ -1,5 +1,3 @@
-const Transaction = require('./transaction')
-
 class TransactionMiner {
     constructor({ blockchain, transactionPool, seller, pubsub }){
         this.blockchain = blockchain;
