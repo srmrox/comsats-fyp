@@ -4,25 +4,51 @@
   "description": "simple blockchain in nodejs",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run build-client & node index.js",
+    "dev": "cross-env ENV='development' nodemon index.js",
+    "dev-peer": "cross-env GENERATE_PEER_PORT='true' ENV='development' nodemon index.js",
+    "build-client": "npm run clean && parcel build client/src/index.html --out-dir client/dist",
+    "dev-client": "npm run clean && parcel client/src/index.html --out-dir client/dist",
+    "clean": "rm -rf .cache client/dist",
+    "test": "jest",
+    "watch": "jest --watchAll"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/srmrox/comsats-fyp.git"
   },
-  "keywords": [],
+  "keywords": [
+    "blockchain"
+  ],
   "author": "Shahrukh Malik",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/srmrox/comsats-fyp/issues"
   },
   "homepage": "https://github.com/srmrox/comsats-fyp#readme",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "body-parser": "^1.18.3",
-    "ejs": "^2.6.1",
+    "elliptic": "^6.4.1",
     "express": "^4.16.3",
-    "http": "0.0.0",
-    "sha256": "^0.2.0"
+    "hex-to-binary": "^1.0.1",
+    "history": "^4.9.0",
+    "parcel-bundler": "^1.12.3",
+    "react": "^16.8.6",
+    "react-bootstrap": "^1.0.0-beta.9",
+    "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.1",
+    "redis": "^2.8.0",
+    "request": "^2.88.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "cross-env": "^5.2.0",
+    "jest": "^24.8.0",
+    "nodemon": "^1.19.1"
   }
 }
