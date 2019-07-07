@@ -1,1 +1,1 @@
-web: node index.js
+web: npm run build-client & node index.js
