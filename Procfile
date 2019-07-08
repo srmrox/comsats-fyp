@@ -1,1 +1,1 @@
-web: npm run build-client & node index.js
+web: rm -rf .cache client/dist && parcel client/src/index.html --out-dir client/dist & node index.js
